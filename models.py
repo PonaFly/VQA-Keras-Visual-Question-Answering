@@ -1,10 +1,10 @@
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, LSTM, Flatten, Embedding, Merge
+from keras.layers import Dense, Activation, Dropout, LSTM, Flatten, Embedding, Concatenate
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 import h5py
 
 def Word2VecModel(embedding_matrix, num_words, embedding_dim, seq_length, dropout_rate):
-    print "Creating text model..."
+    print("Creating text model...")
     model = Sequential()
     model.add(Embedding(num_words, embedding_dim, 
         weights=[embedding_matrix], input_length=seq_length, trainable=False))
@@ -16,7 +16,7 @@ def Word2VecModel(embedding_matrix, num_words, embedding_dim, seq_length, dropou
     return model
 
 def img_model(dropout_rate):
-    print "Creating image model..."
+    print("Creating image model...")
     model = Sequential()
     model.add(Dense(1024, input_dim=4096, activation='tanh'))
     return model
@@ -24,9 +24,9 @@ def img_model(dropout_rate):
 def vqa_model(embedding_matrix, num_words, embedding_dim, seq_length, dropout_rate, num_classes):
     vgg_model = img_model(dropout_rate)
     lstm_model = Word2VecModel(embedding_matrix, num_words, embedding_dim, seq_length, dropout_rate)
-    print "Merging final model..."
+    print("Merging final model...")
     fc_model = Sequential()
-    fc_model.add(Merge([vgg_model, lstm_model], mode='mul'))
+    fc_model.add(Concatenate([vgg_model, lstm_model], mode='mul'))
     fc_model.add(Dropout(dropout_rate))
     fc_model.add(Dense(1000, activation='tanh'))
     fc_model.add(Dropout(dropout_rate))

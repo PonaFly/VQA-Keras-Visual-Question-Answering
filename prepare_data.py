@@ -13,7 +13,7 @@ def right_align(seq,lengths):
     return v
 
 def read_data(data_limit):
-    print "Reading Data..."
+    print("Reading Data...")
     img_data = h5py.File(data_img)
     ques_data = h5py.File(data_prepo)
   
@@ -87,7 +87,7 @@ def prepare_embeddings(num_words, embedding_dim, metadata):
         with h5py.File(embedding_matrix_filename) as f:
             return np.array(f['embedding_matrix'])
 
-    print "Embedding Data..."
+    print("Embedding Data...")
     with open(train_questions_path, 'r') as qs_file:
         questions = json.loads(qs_file.read())
         texts = [str(_['question']) for _ in questions['questions']]
