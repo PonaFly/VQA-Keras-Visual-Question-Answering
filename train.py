@@ -1,6 +1,4 @@
 import numpy as np
-#import tensorflow as tf
-#from keras.backend.tensorflow_backend import set_session
 from keras.models import model_from_json
 from keras.callbacks import ModelCheckpoint
 import os
@@ -9,7 +7,7 @@ from models import *
 from prepare_data import *
 from constants import *
 
-def get_model(dropout_rate, model_weights_filename):
+def get_model(dropout_rate, model_weights_filename,weights_load):
     print("Creating Model...")
     metadata = get_metadata()
     num_classes = len(metadata['ix_to_ans'].keys())
@@ -17,23 +15,18 @@ def get_model(dropout_rate, model_weights_filename):
 
     embedding_matrix = prepare_embeddings(num_words, embedding_dim, metadata)
     model = vqa_model(embedding_matrix, num_words, embedding_dim, seq_length, dropout_rate, num_classes)
-    if os.path.exists(model_weights_filename):
+    if (os.path.exists(model_weights_filename) and weights_load):
         print("Loading Weights...")
         model.load_weights(model_weights_filename)
-
+    
     return model
 
 def train(args):
-    #config = tf.ConfigProto()
-    #config.gpu_options.per_process_gpu_memory_fraction = 0.2
-    #config.gpu_options.allow_growth = True
-    #set_session(tf.Session(config=config))
-    
     dropout_rate = 0.5
     train_X, train_y = read_data(args.data_limit)    
-    model = get_model(dropout_rate, model_weights_filename)
+    model = get_model(dropout_rate, model_weights_filename, args.weights_load)
     checkpointer = ModelCheckpoint(filepath=ckpt_model_weights_filename,verbose=1)
-    model.fit(train_X, train_y, nb_epoch=args.epoch, batch_size=args.batch_size, callbacks=[checkpointer], shuffle="batch")
+    model.fit(train_X, train_y, epochs=args.epoch, batch_size=args.batch_size, callbacks=[checkpointer], shuffle="batch")
     model.save_weights(model_weights_filename, overwrite=True)
 
 def val():
@@ -55,11 +48,12 @@ def val():
     print("true positive rate: ", np.float(true_positive)/len(pred_classes))
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(add_help=True)
     parser.add_argument('--type', type=str, default='train')
     parser.add_argument('--epoch', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=256)
     parser.add_argument('--data_limit', type=int, default=215359, help='Number of data points to fed for training')
+    parser.add_argument('--weights_load', default=False, help='Weights loading')
     args = parser.parse_args()
 
     if args.type == 'train':
